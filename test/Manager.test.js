@@ -35,11 +35,11 @@ describe('RotoManager Contract', async () => {
 
     token = await new web3.eth.Contract(compiledToken.abi)
       .deploy({ data: compiledToken.bytecode })
-      .send({ from: accounts[0], gas: 1500000 })
+      .send({ from: accounts[0], gas: 4500000 })
 
     manager = await new web3.eth.Contract(compiledManager.abi)
       .deploy({ data: compiledManager.bytecode })
-      .send({ from: accounts[0], gas: 1500000 })
+      .send({ from: accounts[0], gas: 4500000 })
 
     await manager.methods
       .setTokenContract(token.options.address)
@@ -157,7 +157,6 @@ describe('RotoManager Contract', async () => {
 
     
     let result = await manager.methods.releaseRoto(staker, tournamentID, etherReward).send({ from: accounts[0] })
-    console.log('ReleaseRoto Gas Used: ', result.gasUsed)
     let final_balance = await token.methods.balanceOf(staker).call()
     
     assert.equal(initial_balance, final_balance)
@@ -185,7 +184,6 @@ describe('RotoManager Contract', async () => {
     })
 
     let result = await manager.methods.releaseRoto(staker, tournamentID, etherReward).send({ from: accounts[0] })
-    console.log('ReleaseRoto Gas Used: ',result.gasUsed)
 
     //gets final ether and roto balances
     let final_ether_balance = await web3.eth.getBalance(staker)
@@ -217,7 +215,6 @@ describe('RotoManager Contract', async () => {
     })
 
     let result = await manager.methods.destroyRoto(staker, tournamentID).send({ from: accounts[0] })
-    console.log('DestroyRoto Gas Used: ',result.gasUsed)
 
     let final_balance = await token.methods.balanceOf(staker).call()
     let expected = initial_balance - stake;
@@ -241,7 +238,6 @@ describe('RotoManager Contract', async () => {
       })
 
       let result = await manager.methods.rewardRoto(user, tournamentID, rotoPrize).send({ from: accounts[0] })
-      console.log('RewardRoto Gas Used: ', result.gasUsed)
 
       let final_balance = await token.methods.balanceOf(user).call()
       let expected = Number(initial_balance) + Number(rotoPrize)

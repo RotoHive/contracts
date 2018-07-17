@@ -3,5 +3,5 @@
 ```node
   npm install
   truffle compile
-  npm run test
+  npm test
 ```

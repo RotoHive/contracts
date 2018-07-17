@@ -18,7 +18,7 @@ describe('RotoToken Contract', async () => {
     accounts = await web3.eth.getAccounts()
     token = await new web3.eth.Contract(compiledToken.abi)
       .deploy({ data: compiledToken.bytecode })
-      .send({ from: accounts[0], gas: 1500000 })
+      .send({ from: accounts[0], gas: 4500000 })
 
     await token.methods.setManagerContract(accounts[3]).send({
       from: accounts[0]
