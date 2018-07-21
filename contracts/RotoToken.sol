@@ -121,6 +121,8 @@ contract RotoToken is StandardToken {
     
     /**
       @dev - called by the manager contract, used to reward non-staked submissions by users
+      @param _user address, the address that will receive the rewarded ROTO
+      @param _value ROTO, the amount of ROTO that they'll be rewarded
      */
     function rewardRoto(address _user, uint256 _value) external onlyManager returns(bool successful) {
       require(_user!=address(0));

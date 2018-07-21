@@ -12,7 +12,7 @@ contract RotoBasic {
 
     //Address of the contract owner the manager contract(this contract)
     address owner;
-    address manager = this;
+    address manager;
 
     //boolean variable that determines whether there's an emergency state
     bool emergency;

@@ -7,6 +7,7 @@ contract RotoManager is RotoBasic {
     constructor() public {
       owner = msg.sender;
       emergency = false;
+      manager = this;
     }
 
     /**
@@ -23,7 +24,7 @@ contract RotoManager is RotoBasic {
 
         require(initial_stake > 0);
         require(user_stake.resolved == false);
-        
+        require(manager.balance > _etherReward);
         //Redistributes roto back to the user, and marks the stake as successful and completed
         user_stake.amount = 0;
         assert(token.releaseRoto(_user, initial_stake)); // calls the token contract releaseRoto function to handle the token accounting
@@ -32,7 +33,7 @@ contract RotoManager is RotoBasic {
         user_stake.successful = true;
 
         if(_etherReward > 0) {
-            _user.transfer(_etherReward);
+          _user.transfer(_etherReward);
         }
 
         emit StakeReleased(_tournamentID, _user, _etherReward, initial_stake);
