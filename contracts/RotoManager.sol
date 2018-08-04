@@ -1,9 +1,11 @@
-pragma solidity ^0.4.22;
+pragma solidity 0.4.24;
 
 import './RotoBasic.sol';
 
 contract RotoManager is RotoBasic {
-  
+
+    using SafeMath for uint256;
+
     constructor() public {
       owner = msg.sender;
       emergency = false;
@@ -15,19 +17,25 @@ contract RotoManager is RotoBasic {
         @param _user The user's address, the ether the've won,
         @return - returns whether the Roto was sucessfully transferred
      */
-    function releaseRoto(address _user, bytes32 _tournamentID, uint256 _etherReward) public onlyOwner stopInEmergency returns(bool successful){
+    function releaseRoto(address _user, bytes32 _tournamentID, uint256 _etherReward) external onlyOwner stopInEmergency returns(bool successful){
         Tournament storage tournament = tournaments[_tournamentID];
         require(tournament.open==true);
 
         Stake storage user_stake = tournament.stakes[_user][_tournamentID];
         uint256 initial_stake = user_stake.amount;
 
+        // prelimiary checks 
         require(initial_stake > 0);
         require(user_stake.resolved == false);
+
+        // ether balance rewards
         require(manager.balance > _etherReward);
+        require(tournament.etherLeft >= _etherReward);
+
         //Redistributes roto back to the user, and marks the stake as successful and completed
         user_stake.amount = 0;
         assert(token.releaseRoto(_user, initial_stake)); // calls the token contract releaseRoto function to handle the token accounting
+        tournament.stakesResolved = tournament.stakesResolved.add(1);
         
         user_stake.resolved = true;
         user_stake.successful = true;
@@ -47,7 +55,7 @@ contract RotoManager is RotoBasic {
         @return - a boolean value determining whether the operation was successful
     
      */
-    function rewardRoto(address _user, bytes32 _tournamentID, uint256 _rotoReward) public onlyOwner stopInEmergency returns(bool successful) {
+    function rewardRoto(address _user, bytes32 _tournamentID, uint256 _rotoReward) external onlyOwner stopInEmergency returns(bool successful) {
       Tournament storage tournament = tournaments[_tournamentID];
       require(tournament.open==true);
 
@@ -73,7 +81,7 @@ contract RotoManager is RotoBasic {
         @param _tournamentID 32byte hex, the tournament which the stake belongs to
         @return - whether the roto was successfully destroyed
      */
-    function destroyRoto(address _user, bytes32 _tournamentID) public onlyOwner stopInEmergency returns(bool successful) {
+    function destroyRoto(address _user, bytes32 _tournamentID) external onlyOwner stopInEmergency returns(bool successful) {
         Tournament storage tournament = tournaments[_tournamentID];
         require(tournament.open==true);
 
@@ -89,6 +97,7 @@ contract RotoManager is RotoBasic {
         user_stake.successful = false;
 
         assert(token.destroyRoto(_user, initial_stake));
+        tournament.stakesResolved = tournament.stakesResolved.add(1);
 
         emit StakeDestroyed(_tournamentID, _user, initial_stake);
 
@@ -100,7 +109,7 @@ contract RotoManager is RotoBasic {
         @param _value the amount of Roto being staked, the id of that stake, and the id of the tournament
         @return - whether the staking request was successful
      */
-    function stake(uint256 _value, bytes32 _tournamentID) public stopInEmergency returns(bool successful) {
+    function stake(uint256 _value, bytes32 _tournamentID) external stopInEmergency returns(bool successful) {
         return _stake(msg.sender, _tournamentID, _value);
     }
 
@@ -127,6 +136,9 @@ contract RotoManager is RotoBasic {
         user_stake.amount = _value;
         assert(token.stakeRoto(_staker,_value));
 
+        // adds the stake the submission
+        tournament.userStakes = tournament.userStakes.add(1);
+
         emit StakeProcessed(_staker, user_stake.amount, _tournamentID);
 
         return true;
@@ -145,7 +157,10 @@ contract RotoManager is RotoBasic {
         
         newTournament.open = true;
         newTournament.etherPrize = _etherPrize;
+        newTournament.etherLeft = _etherPrize;
+
         newTournament.rotoPrize = _rotoPrize;
+        newTournament.rotoLeft = _rotoPrize;
         newTournament.creationTime = block.timestamp;
 
         emit TournamentCreated(_tournamentID, _etherPrize, _rotoPrize);
@@ -160,8 +175,13 @@ contract RotoManager is RotoBasic {
     */
     function closeTournament(bytes32 _tournamentID) external onlyOwner returns(bool successful) {
        Tournament storage tournament = tournaments[_tournamentID];
+      //  the tournament should be open
        require(tournament.open==true);
 
+       //  all the prizes should have been given out
+       require(tournament.rotoLeft == 0 && tournament.etherLeft == 0);
+      //  all the users stakes should have been resolved
+       require(tournament.userStakes == tournament.stakesResolved);
        tournament.open = false;
 
        emit TournamentClosed(_tournamentID);

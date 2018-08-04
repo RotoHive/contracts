@@ -5,11 +5,16 @@ const Web3 = require('web3')
 const web3 = new Web3(ganache.provider())
 
 const compiledToken = require('../build/contracts/RotoToken.json')
+const compiledManager = require('../build/contracts/RotoManager.json')
+
 let accounts
 
 let token
 let address
+
 let manager
+let managerAddr
+
 let supply
 let decimal
 
@@ -20,11 +25,15 @@ describe('RotoToken Contract', async () => {
       .deploy({ data: compiledToken.bytecode })
       .send({ from: accounts[0], gas: 4500000 })
 
-    await token.methods.setManagerContract(accounts[3]).send({
+    manager = await new web3.eth.Contract(compiledManager.abi)
+      .deploy({ data: compiledManager.bytecode })
+      .send({ from: accounts[0], gas: 4500000})
+
+    await token.methods.setManagerContract(manager.options.address).send({
       from: accounts[0]
     })
 
-    manager = accounts[3]
+    managerAddr = manager.options.address
 
     supply = await token.methods.totalSupply().call()
     decimal = await token.methods.decimals().call()
@@ -61,7 +70,7 @@ describe('RotoToken Contract', async () => {
   it('should set the manager contract correctly', async () => {
     const result = await token.methods.getManager().call()
 
-    assert.equal(manager, result)
+    assert.equal(managerAddr, result)
   })
   it('should allow the owner to transfer ROTO from the contract', async () => {
     let withdrawal = '1000000000000000000000000'
@@ -99,101 +108,5 @@ describe('RotoToken Contract', async () => {
       .allowance(accounts[0], accounts[1])
       .call()
     assert.equal(0, allowance)
-  })
-
-  it('should allow the manager to check whether a user can stake ROTO', async () => {
-    let withdrawal = '10000000000000000000000'
-    const withdraw_result = await token.methods
-      .transferFromContract(accounts[1], withdrawal)
-      .send({ from: accounts[0] })
-
-    let stake = '10000000000000000000000'
-    let staker = accounts[1]
-
-    let result = await token.methods
-      .canStake(staker, stake)
-      .send({ from: manager })
-    assert(result)
-  })
-
-  it('should allow the manager to send a request to stake ROTO', async () => {
-    let withdrawal = '1000000000000000000000000'
-    const withdraw_result = await token.methods
-      .transferFromContract(accounts[1], withdrawal)
-      .send({ from: accounts[0] })
-
-    let stake = '1000000000000000000000'
-    let staker = accounts[1]
-    let initial_balance = await token.methods.balanceOf(staker).call()
-
-    let result = await token.methods
-      .stakeRoto(staker, stake)
-      .send({ from: manager })
-    let final_balance = await token.methods.balanceOf(staker).call()
-
-    assert.equal(Number(initial_balance) - Number(stake), final_balance)
-    assert(result)
-  })
-
-  it('should allow the manager to release a staked ROTO', async () => {
-    let withdrawal = '1000000000000000000000000'
-    const withdraw_result = await token.methods
-      .transferFromContract(accounts[1], withdrawal)
-      .send({ from: accounts[0] })
-
-    let stake = '1000000000000000000000'
-    let staker = accounts[1]
-    let initial_balance = await token.methods.balanceOf(staker).call()
-
-    await token.methods.stakeRoto(staker, stake).send({ from: manager })
-
-    let result = await token.methods
-      .releaseRoto(staker, stake)
-      .send({ from: manager })
-    assert(result)
-
-    let final_balance = await token.methods.balanceOf(staker).call()
-    assert.equal(initial_balance, final_balance)
-  })
-
-  it('should allow the manager to destroy staked ROTO', async () => {
-    let withdrawal = '1000000000000000000000000'
-    await token.methods
-      .transferFromContract(accounts[1], withdrawal)
-      .send({ from: accounts[0] })
-
-    let initial_roto_balance = await token.methods.balanceOf(address).call()
-
-    let stake = '1000000000000000000000'
-    let staker = accounts[1]
-    let initial_balance = await token.methods.balanceOf(staker).call()
-
-    await token.methods.stakeRoto(staker, stake).send({ from: manager })
-
-    let result = await token.methods
-      .destroyRoto(staker, stake)
-      .send({ from: manager })
-    assert(result)
-
-    let final_balance = await token.methods.balanceOf(staker).call()
-    let final_roto_balance = await token.methods.balanceOf(address).call()
-
-    assert.equal(Number(initial_balance) - Number(stake), final_balance)
-
-    assert.equal('20001000000000000000000000', final_roto_balance)
-  })
-
-  it('should allow the manager to reward ROTO to non-staked submissions', async () => {
-    let user = accounts[1]
-    let reward = 10 * 10 ** 18
-    let initial_balance = await token.methods.balanceOf(user).call()
-
-    let result = await token.methods
-      .rewardRoto(user, reward)
-      .send({ from: manager })
-    assert.ok(result)
-
-    let final_balance = await token.methods.balanceOf(user).call()
-    assert.equal(Number(initial_balance) + reward, final_balance)
   })
 })

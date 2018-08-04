@@ -1,7 +1,6 @@
-pragma solidity ^0.4.22;
+pragma solidity 0.4.24;
 
 import './RotoToken.sol';
-
 contract RotoBasic {
 
     mapping (bytes32 => Tournament) public tournaments;  // tournamentID
@@ -19,10 +18,18 @@ contract RotoBasic {
 
     struct Tournament {
         bool open;
+        // the total ether prize and how much is left
         uint256 etherPrize;
+        uint256 etherLeft;
+        // the total roto prize how much is left
         uint256 rotoPrize;
+        uint256 rotoLeft;
+        // tournament details
         uint256 creationTime;
         mapping (address => mapping (bytes32 => Stake)) stakes;  // address of staker, to tournament ID points to a specific stake
+        //counters to easily tell the # of stakes vs # of stakes resolved
+        uint256 userStakes;
+        uint256 stakesResolved;
     }
 
     struct Stake {
@@ -51,8 +58,6 @@ contract RotoBasic {
     event TournamentCreated(bytes32 indexed tournamentID, uint256 etherPrize, uint256 rotoPrize);
     event TournamentClosed(bytes32 indexed tournamentID);
 
-    function() public payable {}
-
     /**
        @dev - sets the token contract to used for the token accounting
        @param _contract address, the address of the token contract
@@ -60,6 +65,12 @@ contract RotoBasic {
     */
     function setTokenContract(address _contract) public onlyOwner returns(bool) {
       require(_contract!=address(0)&&_contract!=manager);
+
+      // requires that the address sent be a contract
+      uint size;
+      assembly { size := extcodesize(_contract) }
+      require(size > 0);
+
       roto = _contract;
       token = RotoToken(roto);
 

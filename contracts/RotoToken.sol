@@ -1,4 +1,4 @@
-pragma solidity ^0.4.22;
+pragma solidity 0.4.24;
 
 import "./StandardToken.sol";
 
@@ -13,6 +13,9 @@ contract RotoToken is StandardToken {
     address roto = this;
     address manager;
 
+    // keeps track of the ROTO currently staked in a tournament
+    // the format is user address -> the tournament they staked in -> how much they staked
+    mapping (address => mapping (bytes32 => uint256)) stakes;
 
   /**
    * @dev Constructor that gives msg.sender all of existing tokens.
@@ -40,8 +43,6 @@ contract RotoToken is StandardToken {
         balances[roto] = INITIAL_SUPPLY;
         emit Transfer(0x0, roto, INITIAL_SUPPLY);
     }
-    
-    function() public payable {}
 
     
     /**
@@ -67,7 +68,14 @@ contract RotoToken is StandardToken {
         @return - whether the contract was successfully set
     */
     function setManagerContract(address _contract) external onlyOwner returns(bool) {
+      //checks that the address sent isn't the 0 address, the owner or the token contract
       require(_contract!=address(0)&&_contract!=roto);
+
+      // requires that the address sent be a contract
+      uint size;
+      assembly { size := extcodesize(_contract) }
+      require(size > 0);
+
       manager = _contract;
 
       emit ManagerChanged(_contract);
