@@ -85,44 +85,47 @@ contract RotoToken is StandardToken {
     /**
         @dev - called by the manager contract to add back to the user their roto in the event that their submission was successful
         @param  _user address, the address of the user who submitted the rankings
-        @param _value staked, the amount that the user staked alongside their submissions
+        @param _tournamentID identifier
         @return boolean value, whether the roto were successfully released
     */
-    function releaseRoto(address _user, uint256 _value) external onlyManager returns(bool) {
+    function releaseRoto(address _user, bytes32 _tournamentID) external onlyManager returns(bool) {
         require(_user!=address(0));
-        require(_value<=balances[roto]);
+        uint256 value = stakes[_user][_tournamentID];
+        balances[_user] = balances[_user].add(value);
 
-        balances[_user] = balances[_user].add(_value);
-        emit RotoReleased(_user, _value);
+        emit RotoReleased(_user, value);
         return true;
     }
 
     /**
         @dev - function called by manager contract to process the accounting aspects of the destroyRoto function
         @param  _user address, the address of the user who's stake will be destroyed
-        @param _value ROTO, the amount that they staked
+        @param _tournamentID identifier
         @return - a boolean value that reflects whether the roto were successfully destroyed
     */
-    function destroyRoto(address _user, uint256 _value) external onlyManager returns(bool) {
+    function destroyRoto(address _user, bytes32 _tournamentID) external onlyManager returns(bool) {
         require(_user!=address(0));
-        require(_value<=balances[_user]);
-
-        balances[roto] = balances[roto].add(_value);
-        emit RotoDestroyed(_user, _value);
+        uint256 value = stakes[_user][_tournamentID];
+        balances[roto] = balances[roto].add(value);
+        emit RotoDestroyed(_user, value);
         return true;
     }
 
     /**
         @dev - called by the manager contract, runs the accounting portions of the staking process
         @param  _user address, the address of the user staking ROTO
+        @param _tournamentID identifier
         @param _value ROTO, the amount the user is staking
         @return - whether the staking process went successfully
     */
-    function stakeRoto(address _user, uint256 _value) external onlyManager returns(bool) {
+    function stakeRoto(address _user, bytes32 _tournamentID, uint256 _value) external onlyManager returns(bool) {
         require(_user!=address(0));
         require(_value<=balances[_user]);
+        require(stakes[_user][_tournamentID] == 0);
 
         balances[_user] = balances[_user].sub(_value);
+        stakes[_user][_tournamentID] = _value;
+
         emit RotoStaked(_user, _value);
         return true;
     }

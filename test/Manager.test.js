@@ -128,7 +128,8 @@ describe('RotoManager Contract', async () => {
           assert.equal(stake, returnValues.totalAmountStaked)
       })
 
-      const result = await manager.methods.stake(stake, tournamentID).send({ from: staker })
+      const result = await manager.methods.stake(stake, tournamentID).send({ from: staker, gas: '120000' })
+      console.log('Staking Gas Cost: ',result.gasUsed);
       let final_balance = await token.methods.balanceOf(staker).call()
       
       let expected_value = Number(initial_balance) - Number(stake)
@@ -144,7 +145,7 @@ describe('RotoManager Contract', async () => {
     let initial_balance = await token.methods.balanceOf(staker).call()
     
     //stakes 10 ROTO in the tournament
-    await manager.methods.stake(stake, tournamentID).send({ from: staker })
+    await manager.methods.stake(stake, tournamentID).send({ from: staker, gas: '120000' })
     
     StakeReleasedListener.on('data', event => {
       let returnValues = event.returnValues
@@ -173,7 +174,7 @@ describe('RotoManager Contract', async () => {
     let initial_roto_balance = await token.methods.balanceOf(staker).call()
 
     //stakes 10 ROTO in the tournament
-    await manager.methods.stake(stake, tournamentID).send({ from: staker })
+    await manager.methods.stake(stake, tournamentID).send({ from: staker,  gas: '120000' })
 
     StakeReleasedListener.on('data', event => {
       let returnValues = event.returnValues
@@ -205,7 +206,7 @@ describe('RotoManager Contract', async () => {
     let initial_balance = await token.methods.balanceOf(staker).call()
 
     //stakes 10 ROTO in the tournament
-    await manager.methods.stake(stake, tournamentID).send({ from: staker })
+    await manager.methods.stake(stake, tournamentID).send({ from: staker,  gas: '120000' })
 
     StakeDestroyedListener.on('data', event => {
       let returnValues = event.returnValues

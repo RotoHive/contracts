@@ -34,7 +34,7 @@ contract RotoManager is RotoBasic {
 
         //Redistributes roto back to the user, and marks the stake as successful and completed
         user_stake.amount = 0;
-        assert(token.releaseRoto(_user, initial_stake)); // calls the token contract releaseRoto function to handle the token accounting
+        assert(token.releaseRoto(_user, _tournamentID)); // calls the token contract releaseRoto function to handle the token accounting
         tournament.stakesResolved = tournament.stakesResolved.add(1);
         
         user_stake.resolved = true;
@@ -99,7 +99,7 @@ contract RotoManager is RotoBasic {
         user_stake.resolved = true;
         user_stake.successful = false;
 
-        assert(token.destroyRoto(_user, initial_stake));
+        assert(token.destroyRoto(_user, _tournamentID));
         tournament.stakesResolved = tournament.stakesResolved.add(1);
 
         emit StakeDestroyed(_tournamentID, _user, initial_stake);
@@ -131,13 +131,13 @@ contract RotoManager is RotoBasic {
         
         require(user_stake.amount==0); // Users can only stake once
         require(_value>0); // Users must stake at least 1 ROTO
-        require(_staker != roto && _staker != owner); //RotoHive can't stake in 
+        require(_staker != roto && _staker != owner); //RotoHive can't stake in tournament
         
         //Users must have the necessary balances to submit their stake
         assert(token.canStake(_staker, _value));
 
         user_stake.amount = _value;
-        assert(token.stakeRoto(_staker,_value));
+        assert(token.stakeRoto(_staker,_tournamentID,_value));
 
         // adds the stake the submission
         tournament.userStakes = tournament.userStakes.add(1);
