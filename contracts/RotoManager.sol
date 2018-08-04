@@ -41,6 +41,7 @@ contract RotoManager is RotoBasic {
         user_stake.successful = true;
 
         if(_etherReward > 0) {
+          tournament.etherLeft = tournament.etherLeft.sub(_etherReward);
           _user.transfer(_etherReward);
         }
 
@@ -63,8 +64,10 @@ contract RotoManager is RotoBasic {
       uint256 initial_stake = user_stake.amount;
       
       require(initial_stake==0);
+      require(tournament.rotoLeft > _rotoReward);
       require(user_stake.resolved == false);
 
+      tournament.rotoLeft = tournament.rotoLeft.sub(_rotoReward);
       assert(token.rewardRoto(_user, _rotoReward));
 
       user_stake.resolved = true;

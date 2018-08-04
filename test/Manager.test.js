@@ -76,7 +76,7 @@ describe('RotoManager Contract', async () => {
 
     //Creates a Tournament
     tournamentID = web3.utils.randomHex(32)
-    etherPrize = 12
+    etherPrize = await web3.utils.toWei('12')
     rotoPrize = await web3.utils.toWei('5000000')
     await manager.methods.createTournament(tournamentID, etherPrize, rotoPrize)
       .send({ from: accounts[0], gas: 1500000, value: await web3.utils.toWei('10') })
