@@ -34,7 +34,6 @@ describe('RotoToken Contract', async () => {
     })
 
     managerAddr = manager.options.address
-
     supply = await token.methods.totalSupply().call()
     decimal = await token.methods.decimals().call()
     address = token.options.address

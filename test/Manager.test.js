@@ -129,120 +129,120 @@ describe('RotoManager Contract', async () => {
       })
 
       const result = await manager.methods.stake(stake, tournamentID).send({ from: staker })
-      console.log(result.gasUsed)
       let final_balance = await token.methods.balanceOf(staker).call()
       
       let expected_value = Number(initial_balance) - Number(stake)
       assert.equal(expected_value.toString(), final_balance)
   })
 
-  // it('should allow the owner to release staked ROTO, and give it 0 ether', async() => {
-  //   let stake = await web3.utils.toWei('10')
-  //   let staker = accounts[1]
-  //   let etherReward = 0
+  it('should allow the owner to release staked ROTO, and give it 0 ether', async() => {
+    let stake = await web3.utils.toWei('10')
+    let staker = accounts[1]
+    let etherReward = 0
 
-  //   //gets the initial ROTO balance
-  //   let initial_balance = await token.methods.balanceOf(staker).call()
+    //gets the initial ROTO balance
+    let initial_balance = await token.methods.balanceOf(staker).call()
     
-  //   //stakes 10 ROTO in the tournament
-  //   await manager.methods.stake(stake, tournamentID).send({ from: staker })
+    //stakes 10 ROTO in the tournament
+    await manager.methods.stake(stake, tournamentID).send({ from: staker })
     
-  //   StakeReleasedListener.on('data', event => {
-  //     let returnValues = event.returnValues
+    StakeReleasedListener.on('data', event => {
+      let returnValues = event.returnValues
 
-  //     assert.equal(tournamentID, returnValues.tournamentID)
-  //     assert.equal(staker, returnValues.stakerAddress)
-  //     assert.equal(etherReward, returnValues.etherReward)
-  //     assert.equal(stake, returnValues.rotoStaked)
-  //   })
+      assert.equal(tournamentID, returnValues.tournamentID)
+      assert.equal(staker, returnValues.stakerAddress)
+      assert.equal(etherReward, returnValues.etherReward)
+      assert.equal(stake, returnValues.rotoStaked)
+    })
 
     
-  //   let result = await manager.methods.releaseRoto(staker, tournamentID, etherReward).send({ from: accounts[0] })
-  //   let final_balance = await token.methods.balanceOf(staker).call()
+    let result = await manager.methods.releaseRoto(staker, tournamentID, etherReward).send({ from: accounts[0] ,gas: '300000'})
+    console.log('Release Stake Gas Used(no ether): ', result.gasUsed)
+    let final_balance = await token.methods.balanceOf(staker).call()
     
-  //   assert.equal(initial_balance, final_balance)
-  // })
+    assert.equal(initial_balance, final_balance)
+  })
 
-  // it('should allow the owner to release staked ROTO, and give it 2 ether', async() => {
-  //   let stake = await web3.utils.toWei('10')
-  //   let staker = accounts[1]
-  //   let etherReward = await web3.utils.toWei('2')
+  it('should allow the owner to release staked ROTO, and give it 2 ether', async() => {
+    let stake = await web3.utils.toWei('10')
+    let staker = accounts[1]
+    let etherReward = await web3.utils.toWei('2')
 
-  //   //Gets initial ether and roto balance
-  //   let initial_ether_balance = await web3.eth.getBalance(staker);
-  //   let initial_roto_balance = await token.methods.balanceOf(staker).call()
+    //Gets initial ether and roto balance
+    let initial_ether_balance = await web3.eth.getBalance(staker);
+    let initial_roto_balance = await token.methods.balanceOf(staker).call()
 
-  //   //stakes 10 ROTO in the tournament
-  //   await manager.methods.stake(stake, tournamentID).send({ from: staker })
+    //stakes 10 ROTO in the tournament
+    await manager.methods.stake(stake, tournamentID).send({ from: staker })
 
-  //   StakeReleasedListener.on('data', event => {
-  //     let returnValues = event.returnValues
+    StakeReleasedListener.on('data', event => {
+      let returnValues = event.returnValues
 
-  //     assert.equal(tournamentID, returnValues.tournamentID)
-  //     assert.equal(staker, returnValues.stakerAddress)
-  //     assert.equal(etherReward, returnValues.etherReward)
-  //     assert.equal(stake, returnValues.rotoStaked)
-  //   })
+      assert.equal(tournamentID, returnValues.tournamentID)
+      assert.equal(staker, returnValues.stakerAddress)
+      assert.equal(etherReward, returnValues.etherReward)
+      assert.equal(stake, returnValues.rotoStaked)
+    })
 
-  //   let result = await manager.methods.releaseRoto(staker, tournamentID, etherReward).send({ from: accounts[0] })
+    let result = await manager.methods.releaseRoto(staker, tournamentID, etherReward).send({ from: accounts[0], gas: '300000' })
+    console.log('Release Stake Gas Used(with ether): ', result.gasUsed)
+    //gets final ether and roto balances
+    let final_ether_balance = await web3.eth.getBalance(staker)
+    let final_roto_balance = await token.methods.balanceOf(staker).call()
 
-  //   //gets final ether and roto balances
-  //   let final_ether_balance = await web3.eth.getBalance(staker)
-  //   let final_roto_balance = await token.methods.balanceOf(staker).call()
+    let expected_ether_value = Number(initial_ether_balance)
+    let end_ether_value = Number(final_ether_balance)
 
-  //   let expected_ether_value = Number(initial_ether_balance)
-  //   let end_ether_value = Number(final_ether_balance)
+    assert.equal(final_roto_balance, initial_roto_balance);
+    assert(end_ether_value > expected_ether_value);
+  })
 
-  //   assert.equal(final_roto_balance, initial_roto_balance);
-  //   assert(end_ether_value > expected_ether_value);
-  // })
+  it('should allow the owner to destroy staked ROTO', async() => {
+    let stake = await web3.utils.toWei('10')
+    let staker = accounts[1]
 
-  // it('should allow the owner to destroy staked ROTO', async() => {
-  //   let stake = await web3.utils.toWei('10')
-  //   let staker = accounts[1]
+    //gets the initial ROTO balance
+    let initial_balance = await token.methods.balanceOf(staker).call()
 
-  //   //gets the initial ROTO balance
-  //   let initial_balance = await token.methods.balanceOf(staker).call()
+    //stakes 10 ROTO in the tournament
+    await manager.methods.stake(stake, tournamentID).send({ from: staker })
 
-  //   //stakes 10 ROTO in the tournament
-  //   await manager.methods.stake(stake, tournamentID).send({ from: staker })
-
-  //   StakeDestroyedListener.on('data', event => {
-  //     let returnValues = event.returnValues
+    StakeDestroyedListener.on('data', event => {
+      let returnValues = event.returnValues
       
-  //     assert.equal(tournamentID, returnValues.tournamentID)
-  //     assert.equal(staker, returnValues.stakerAddress)
-  //     assert.equal(stake, returnValues.rotoLost)
-  //   })
+      assert.equal(tournamentID, returnValues.tournamentID)
+      assert.equal(staker, returnValues.stakerAddress)
+      assert.equal(stake, returnValues.rotoLost)
+    })
 
-  //   let result = await manager.methods.destroyRoto(staker, tournamentID).send({ from: accounts[0] })
+    let result = await manager.methods.destroyRoto(staker, tournamentID).send({ from: accounts[0], gas: '300000' })
+    console.log('Destroy Stake Gas Used: ', result.gasUsed)
+    let final_balance = await token.methods.balanceOf(staker).call()
+    let expected = initial_balance - stake;
 
-  //   let final_balance = await token.methods.balanceOf(staker).call()
-  //   let expected = initial_balance - stake;
+    assert.equal(final_balance, expected);
+  })
 
-  //   assert.equal(final_balance, expected);
-  // })
-
-  // it('should allow the owner to reward unstaked submissions', async() => {
-  //     let user = accounts[1]
-  //     let rotoPrize = await web3.utils.toWei('5')
+  it('should allow the owner to reward unstaked submissions', async() => {
+      let user = accounts[1]
+      let rotoPrize = await web3.utils.toWei('5')
       
-  //     //gets the initial ROTO balance
-  //     let initial_balance = await token.methods.balanceOf(user).call()
+      //gets the initial ROTO balance
+      let initial_balance = await token.methods.balanceOf(user).call()
 
-  //     SubmissionRewardedListener.on('data', event => {
-  //       let returnValues = event.returnValues
+      SubmissionRewardedListener.on('data', event => {
+        let returnValues = event.returnValues
         
-  //       assert.equal(tournamentID, returnValues.tournamentID)
-  //       assert.equal(user, returnValues.stakerAddress)
-  //       assert.equal(rotoPrize, returnValues.rotoReward)
-  //     })
+        assert.equal(tournamentID, returnValues.tournamentID)
+        assert.equal(user, returnValues.stakerAddress)
+        assert.equal(rotoPrize, returnValues.rotoReward)
+      })
 
-  //     let result = await manager.methods.rewardRoto(user, tournamentID, rotoPrize).send({ from: accounts[0] })
-
-  //     let final_balance = await token.methods.balanceOf(user).call()
-  //     let expected = Number(initial_balance) + Number(rotoPrize)
+      let result = await manager.methods.rewardRoto(user, tournamentID, rotoPrize).send({ from: accounts[0] })
+      console.log('Reward Roto Gas Used(unstaked submission): ', result.gasUsed)
+      let final_balance = await token.methods.balanceOf(user).call()
+      let expected = Number(initial_balance) + Number(rotoPrize)
       
-  //     assert.equal(final_balance, expected)
-  // })
+      assert.equal(final_balance, expected)
+  })
 })
