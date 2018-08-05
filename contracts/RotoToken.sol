@@ -91,6 +91,9 @@ contract RotoToken is StandardToken {
     function releaseRoto(address _user, bytes32 _tournamentID) external onlyManager returns(bool) {
         require(_user!=address(0));
         uint256 value = stakes[_user][_tournamentID];
+        require(value > 0);
+
+        stakes[_user][_tournamentID] = 0;
         balances[_user] = balances[_user].add(value);
 
         emit RotoReleased(_user, value);
@@ -106,7 +109,11 @@ contract RotoToken is StandardToken {
     function destroyRoto(address _user, bytes32 _tournamentID) external onlyManager returns(bool) {
         require(_user!=address(0));
         uint256 value = stakes[_user][_tournamentID];
+        require(value > 0);
+        
+        stakes[_user][_tournamentID] = 0;
         balances[roto] = balances[roto].add(value);
+
         emit RotoDestroyed(_user, value);
         return true;
     }
@@ -164,5 +171,14 @@ contract RotoToken is StandardToken {
      */
     function getManager() public view returns (address _manager) {
       return manager;
+    }
+
+    /**
+      @dev - sets the owner address to a new one
+      @param  _newOwner address
+      @return - true if the address was changed successful
+     */
+    function changeOwner(address _newOwner) public onlyOwner returns(bool) {
+      owner = _newOwner;
     }
 }

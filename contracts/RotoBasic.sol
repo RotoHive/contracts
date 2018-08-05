@@ -88,4 +88,13 @@ contract RotoBasic {
       return true;
     }
 
+    /**
+      @dev - sets the owner address to a new one
+      @param  _newOwner address
+      @return - true if the address was changed successful
+     */
+    function changeOwner(address _newOwner) public onlyOwner returns(bool) {
+      owner = _newOwner;
+    }
+
 }
