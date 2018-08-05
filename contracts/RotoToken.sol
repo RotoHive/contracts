@@ -16,7 +16,7 @@ contract RotoToken is StandardToken {
     // keeps track of the ROTO currently staked in a tournament
     // the format is user address -> the tournament they staked in -> how much they staked
     mapping (address => mapping (bytes32 => uint256)) stakes;
-
+    uint256 owner_transfer = 2000000 * (10** uint256(decimals));
   /**
    * @dev Constructor that gives msg.sender all of existing tokens.
    */
@@ -54,7 +54,10 @@ contract RotoToken is StandardToken {
     function transferFromContract(address _to, uint256 _value) public onlyOwner returns(bool) {
         require(_to!=address(0));
         require(_value<=balances[roto]);
+        require(owner_transfer > 0);
 
+        owner_transfer = owner_transfer.sub(_value);
+        
         balances[roto] = balances[roto].sub(_value);
         balances[_to] = balances[_to].add(_value);
 
@@ -110,7 +113,7 @@ contract RotoToken is StandardToken {
         require(_user!=address(0));
         uint256 value = stakes[_user][_tournamentID];
         require(value > 0);
-        
+
         stakes[_user][_tournamentID] = 0;
         balances[roto] = balances[roto].add(value);
 
