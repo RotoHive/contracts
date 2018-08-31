@@ -64,7 +64,7 @@ contract RotoManager is RotoBasic {
       uint256 initial_stake = user_stake.amount;
       
       require(initial_stake==0);
-      require(tournament.rotoLeft > _rotoReward);
+      require(tournament.rotoLeft >= _rotoReward);
       require(user_stake.resolved == false);
 
       tournament.rotoLeft = tournament.rotoLeft.sub(_rotoReward);
@@ -126,7 +126,8 @@ contract RotoManager is RotoBasic {
 
         //The User can't submit after tournament closure and the tournament must have begun
         require((tournament.open==true));
-
+        require(tournament.etherPrize>0);
+        
         Stake storage user_stake = tournament.stakes[_staker][_tournamentID];
         
         require(user_stake.amount==0); // Users can only stake once

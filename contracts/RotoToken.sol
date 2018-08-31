@@ -152,7 +152,7 @@ contract RotoToken is StandardToken {
       balances[_user] = balances[_user].add(_value);
       balances[roto] = balances[roto].sub(_value);
 
-      emit RotoRewarded(roto, _user, _value);
+      emit Transfer(roto, _user, _value);
       return true;
     }
     /**
